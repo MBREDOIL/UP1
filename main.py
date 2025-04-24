@@ -52,7 +52,7 @@ keyboard = InlineKeyboardMarkup(
     [
         [
             InlineKeyboardButton(text="📞 Contact", url="https://t.me/UIHASH"),
-            InlineKeyboardButton(text="🛠️ Help", url="https://envs.sh/ajv.jpg"),
+            InlineKeyboardButton(text="🛠️ Help", url="https://t.me/UIHASH"),
         ],
     ]
 )
@@ -366,7 +366,7 @@ async def txt_handler(bot: Client, m: Message):
         thumb = raw_text6
 
     await m.reply_text(
-        f"<pre><code>🎯Target Batch : {b_name}</code></pre>"
+        f"<pre><code>📌 : {b_name}</code></pre>"
     )
 
     end =int(raw_textend)
@@ -431,7 +431,7 @@ async def txt_handler(bot: Client, m: Message):
 
             try:  
                 cc = f'•——— `{a_name}` ———•\n\n[——— ✨ {str(count).zfill(3)} ✨ ———]\n\n🎞️𝐓𝐢𝐭𝐥𝐞 » `{name1} [{res}] `\n\n<pre><code>📚 About : {b_name}</code></pre>\n\n🌟𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐞𝐝 𝐁𝐲 » `{CR}`\n'
-                cc1 = f'{str(count).zfill(3)}•📕𝐓𝐢𝐭𝐥𝐞 » `{name1} `\n<pre><code>📚 About : {b_name}</code></pre>\n🌟𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐞𝐝 𝐁𝐲 » `{CR}`\n'
+                cc1 = f'{str(count).zfill(3)}.📕𝐓𝐢𝐭𝐥𝐞 » `{name1} `\n<pre><code>📚 About : {b_name}</code></pre>\n🌟𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐞𝐝 𝐁𝐲 » `{CR}`\n'
                 cczip = f'•——— `{a_name}` ———•\n\n[——— ✨ {str(count).zfill(3)} ✨ ———]\n\n📁𝐓𝐢𝐭𝐥𝐞 » `{name1} `\n\n<pre><code>📚 About : {b_name}</code></pre>\n\n🌟𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐞𝐝 𝐁𝐲 » `{CR}`\n'  
                 ccimg = f'•——— `{a_name}` ———•\n\n[——— ✨ {str(count).zfill(3)} ✨ ———]\n\n🖼️𝐓𝐢𝐭𝐥𝐞 » `{name1} `\n\n<pre><code>📚 About : {b_name}</code></pre>\n\n🌟𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐞𝐝 𝐁𝐲 » `{CR}`\n'
                 cccpvod = f'•——— `{a_name}` ———•\n\n[——— ✨ {str(count).zfill(3)} ✨ ———]\n\n🎞️𝐓𝐢𝐭𝐥𝐞 » `{name1} `\n\n<a href="{urlcpvod}">__**Click Here to Watch Stream**__</a>\n🔗𝐋𝐢𝐧𝐤 » {link0}\n\n<pre><code>📚 Course : {b_name}</code></pre>\n\n🌟𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐞𝐝 𝐁𝐲 » `{CR}`\n'
