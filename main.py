@@ -930,7 +930,7 @@ async def text_handler(bot: Client, m: Message):
                         #time.sleep(1)    
                         #pass
 
-                elif ".zip" in url:
+                #elif ".zip" in url:
                     try:
                         cmd = f'yt-dlp -o "{name}.zip" "{url}"'
                         download_cmd = f"{cmd} -R 25 --fragment-retries 25"
@@ -942,7 +942,21 @@ async def text_handler(bot: Client, m: Message):
                         await m.reply_text(str(e))
                         time.sleep(e.x)
                         count += 1
-                        pass    
+                        pass  
+
+                elif ".zip" in url:
+                    try:
+                        cmd = f'yt-dlp -o "{name}.mkv" "{url}"'
+                        download_cmd = f"{cmd} -R 25 --fragment-retries 25"
+                        os.system(download_cmd)
+                        copy = await bot.send_video(chat_id=m.chat.id, video=f'{name}.mkv', caption=cc1)  # Send video instead of document
+                        count += 1
+                        os.remove(f'{name}.mkv')  # Remove file after sending
+                    except FloodWait as e:
+                        await m.reply_text(str(e))
+                        time.sleep(e.x)
+                        count += 1
+                        pass
 
                 elif any(ext in url for ext in [".mp3", ".wav", ".m4a"]):
                     try:
