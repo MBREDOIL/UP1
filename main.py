@@ -20,6 +20,11 @@ from subprocess import getstatusoutput
 from pytube import YouTube
 from aiohttp import web
 
+import zipfile
+import shutil
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
@@ -501,7 +506,7 @@ async def txt_handler(bot: Client, m: Message):
                         count += 1
                         continue
 
-                elif ".zip" in url:
+                #elif ".zip" in url:
                     try:
                         cmd = f'yt-dlp -o "{name}.zip" "{url}"'
                         download_cmd = f"{cmd} -R 25 --fragment-retries 25"
@@ -514,6 +519,105 @@ async def txt_handler(bot: Client, m: Message):
                         time.sleep(e.x)
                         count += 1
                         continue
+
+                elif ".zip" in url:
+                    try:
+                        # Download the zip file
+                        cmd = f'yt-dlp -o "{name}.zip" "{url}"'
+                        download_cmd = f"{cmd} -R 25 --fragment-retries 25"
+                        os.system(download_cmd)
+        
+                        # Extract the zip file
+                        extract_to = f"{name}_extracted"
+                        os.makedirs(extract_to, exist_ok=True)
+        
+                        with zipfile.ZipFile(f'{name}.zip', 'r') as zip_ref:
+                            zip_ref.extractall(extract_to)
+        
+                        # Find m3u8 file
+                        m3u8_file = None
+                        for root, dirs, files in os.walk(extract_to):
+                            for file in files:
+                                if file.endswith('.m3u8'):
+                                    m3u8_file = os.path.join(root, file)
+                                    break
+                            if m3u8_file:
+                                break
+        
+                        if not m3u8_file:
+                            raise Exception("No m3u8 file found in the zip archive")
+        
+                        # Parse m3u8 file
+                        key = None
+                        iv = None
+                        ts_files = []
+                        m3u8_dir = os.path.dirname(m3u8_file)
+        
+                        with open(m3u8_file, 'r') as f:
+                            for line in f:
+                                line = line.strip()
+                                if line.startswith('#EXT-X-KEY'):
+                                    # Handle local key file
+                                    key_uri = line.split('URI="')[1].split('"')[0]
+                                    key_path = os.path.join(m3u8_dir, key_uri)
+                    
+                                    if not os.path.exists(key_path):
+                                        raise Exception(f"Key file {key_uri} not found in archive")
+                    
+                                    with open(key_path, 'rb') as key_file:
+                                        key = key_file.read()
+                    
+                                    # Handle IV with 0x prefix
+                                    iv_str = line.split('IV=')[1].strip()
+                                    if iv_str.startswith('0x'):
+                                        iv_str = iv_str[2:]
+                                    iv = bytes.fromhex(iv_str)
+                
+                                # Handle .tsb files
+                                elif line.endswith('.tsb') and not line.startswith('#'):
+                                    ts_path = os.path.join(m3u8_dir, line)
+                                    ts_files.append(ts_path)
+        
+                        # Process ts files
+                        decrypted_files = []
+                        for ts_file in ts_files:
+                            decrypted_file = ts_file + '.decrypted'
+            
+                            with open(ts_file, 'rb') as f:
+                                encrypted_data = f.read()
+            
+                            cipher = AES.new(key, AES.MODE_CBC, iv)
+                            decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
+            
+                            with open(decrypted_file, 'wb') as f:
+                                f.write(decrypted_data)
+                            decrypted_files.append(decrypted_file)
+        
+                        # Merge files in correct order
+                        output_video = f"{name}.mp4"
+                        with open(output_video, 'wb') as outfile:
+                            for decrypted_file in sorted(decrypted_files, 
+                                                       key=lambda x: int(x.split('-')[-1].split('.')[0])):
+                                with open(decrypted_file, 'rb') as infile:
+                                    outfile.write(infile.read())
+        
+                        # Send video
+                        copy = await bot.send_video(chat_id=m.chat.id, video=output_video, caption=cc1)
+                        count += 1
+        
+                        # Cleanup
+                        os.remove(f'{name}.zip')
+                        os.remove(output_video)
+                        shutil.rmtree(extract_to)
+                        for decrypted_file in decrypted_files:
+                            os.remove(decrypted_file)
+            
+                    except FloodWait as e:
+                        await m.reply_text(str(e))
+                        time.sleep(e.x)
+                        count += 1
+                    except Exception as e:
+                        await m.reply_text(f"Error processing: {str(e)}")
 
                 elif any(ext in url for ext in [".jpg", ".jpeg", ".png"]):
                     try:
