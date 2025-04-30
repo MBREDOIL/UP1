@@ -557,7 +557,6 @@ async def txt_handler(bot: Client, m: Message):
                             for line in f:
                                 line = line.strip()
                                 if line.startswith('#EXT-X-KEY'):
-                                if line.startswith('#EXT-X-KEY'):
                                     # Extract METHOD, URI and IV
                                     parts = line.split(',')
                                     method = None
