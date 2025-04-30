@@ -557,34 +557,32 @@ async def txt_handler(bot: Client, m: Message):
                             for line in f:
                                 line = line.strip()
                                 if line.startswith('#EXT-X-KEY'):
-                                    # Handle key URI
-                                    key_uri = line.split('URI="')[1].split('"')[0]
+                                if line.startswith('#EXT-X-KEY'):
+                                    # Extract METHOD, URI and IV
+                                    parts = line.split(',')
+                                    method = None
+                                    key_uri = None
+                                    iv_str = None
                     
-                                    # Search for key file in all extracted directories
-                                    key_found = False
-                                    for root, dirs, files in os.walk(extract_to):
-                                        if key_uri in files:
-                                            key_path = os.path.join(root, key_uri)
-                                            key_found = True
-                                            break
-                                        # Check with .key extension if original not found
-                                        elif f"{key_uri}.key" in files:
-                                            key_path = os.path.join(root, f"{key_uri}.key")
-                                            key_found = True
-                                            break
+                                    for part in parts:
+                                        if 'METHOD=' in part:
+                                            method = part.split('METHOD=')[1]
+                                        elif 'URI=' in part:
+                                            key_uri = part.split('URI="')[1].split('"')[0]
+                                        elif 'IV=' in part:
+                                            iv_str = part.split('IV=')[1].strip()
                     
-                                    if not key_found:
-                                        raise Exception(f"Key file {key_uri} not found in any subdirectory")
+                                    if method != 'AES-128':
+                                        raise Exception(f"Unsupported encryption method: {method}")
                     
-                                    with open(key_path, 'rb') as key_file:
-                                        key = key_file.read()
+                                    # Use KEY URI directly as the key (16 characters string)
+                                    key = key_uri.encode('utf-8')
                     
-                                    # Handle IV
-                                    iv_str = line.split('IV=')[1].split(',')[0].strip()
+                                    # Handle IV with 0x prefix
                                     if iv_str.startswith('0x'):
                                         iv_str = iv_str[2:]
                                     iv = bytes.fromhex(iv_str)
-                
+
                                 # Handle .tsb files
                                 elif line.endswith('.tsb') and not line.startswith('#'):
                                     ts_path = os.path.join(m3u8_dir, line)
@@ -595,8 +593,6 @@ async def txt_handler(bot: Client, m: Message):
                                                 ts_path = os.path.join(root, line)
                                                 break
                                     ts_files.append(ts_path)
-        
-                        
         
                         # Process ts files
                         decrypted_files = []
@@ -638,7 +634,6 @@ async def txt_handler(bot: Client, m: Message):
                         count += 1
                     except Exception as e:
                         await m.reply_text(f"Error processing: {str(e)}")
-
 
                 elif any(ext in url for ext in [".jpg", ".jpeg", ".png"]):
                     try:
