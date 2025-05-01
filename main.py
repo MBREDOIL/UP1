@@ -614,7 +614,7 @@ async def txt_handler(bot: Client, m: Message):
                                 encrypted_data = f.read()
             
                             cipher = AES.new(key, AES.MODE_CBC, iv)
-                            decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
+                            decrypted_data = cipher.decrypt(encrypted_data)  # unpad removed 
             
                             with open(decrypted_file, 'wb') as f:
                                 f.write(decrypted_data)
