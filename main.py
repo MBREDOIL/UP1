@@ -9,6 +9,7 @@ import subprocess
 import urllib.parse
 import yt_dlp
 import cloudscraper
+import hashlib
 from logs import logging
 from bs4 import BeautifulSoup
 import core as helper
