@@ -564,23 +564,34 @@ async def txt_handler(bot: Client, m: Message):
                                     iv_str = None
                     
                                     for part in parts:
+                                        part = part.strip()
                                         if 'METHOD=' in part:
                                             method = part.split('METHOD=')[1]
                                         elif 'URI=' in part:
                                             key_uri = part.split('URI="')[1].split('"')[0]
                                         elif 'IV=' in part:
-                                            iv_str = part.split('IV=')[1].strip()
+                                            iv_str = part.split('IV=')[1].split(',')[0].strip()
                     
                                     if method != 'AES-128':
-                                        raise Exception(f"Unsupported encryption method: {method}")
+                                        raise Exception(f"Unsupported method: {method}")
+
+                                    # Key generation logic
+                                    if len(key_uri) == 16:
+                                        key = key_uri.encode('utf-8')
+                                    else:
+                                        key = hashlib.md5(key_uri.encode()).digest()
+    
+                                    # IV handling
+                                    if iv_str:
+                                        if iv_str.startswith('0x'):
+                                           iv_str = iv_str[2:]
+                                        try:
+                                           iv = bytes.fromhex(iv_str)
+                                        except ValueError:
+                                            raise Exception(f"Invalid IV format: {iv_str}")
+                                    else:
+                                        iv = bytes.fromhex(format(media_sequence, '032x'))
                     
-                                    # Use KEY URI directly as the key (16 characters string)
-                                    key = key_uri.encode('utf-8')
-                    
-                                    # Handle IV with 0x prefix
-                                    if iv_str.startswith('0x'):
-                                        iv_str = iv_str[2:]
-                                    iv = bytes.fromhex(iv_str)
 
                                 # Handle .tsb files
                                 elif line.endswith('.tsb') and not line.startswith('#'):
